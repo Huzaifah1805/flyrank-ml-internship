@@ -1,0 +1,13 @@
+{
+  "precision_at_50": 0.5,
+  "score_min": 0.0,
+  "score_max": 0.75,
+  "total_rows": 30000,
+  "rule": "STALE_LOW_CTR",
+  "action": "REFRESH_CONTENT",
+  "weights": {
+    "freshness_risk": 0.4,
+    "ctr_gap": 0.35,
+    "volume_opportunity": 0.25
+  }
+}
