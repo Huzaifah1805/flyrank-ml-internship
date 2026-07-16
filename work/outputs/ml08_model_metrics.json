@@ -1,0 +1,32 @@
+{
+  "models": {
+    "Logistic Regression": {
+      "precision_at_50": 0.772,
+      "roc_auc": 0.6582,
+      "avg_precision": 0.6658
+    },
+    "Decision Tree (D5)": {
+      "precision_at_50": 0.572,
+      "roc_auc": 0.6468,
+      "avg_precision": 0.6354
+    },
+    "Random Forest": {
+      "precision_at_50": 0.724,
+      "roc_auc": 0.6682,
+      "avg_precision": 0.6719
+    },
+    "Gradient Boosting": {
+      "precision_at_50": 0.772,
+      "roc_auc": 0.6849,
+      "avg_precision": 0.6898
+    },
+    "ML-07 Baseline": {
+      "precision_at_50": 0.464,
+      "roc_auc": 0.5991,
+      "avg_precision": 0.5951
+    }
+  },
+  "baseline_p50": 0.5,
+  "best_model": "Gradient Boosting",
+  "validation": "5-fold GroupKFold by client_id"
+}
