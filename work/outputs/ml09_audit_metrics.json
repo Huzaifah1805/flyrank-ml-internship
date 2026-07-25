@@ -1,0 +1,14 @@
+{
+  "per_fold_p50": [
+    0.92,
+    0.78,
+    0.86,
+    0.62,
+    0.68
+  ],
+  "mean_p50": 0.772,
+  "std_p50": 0.1238,
+  "mean_baseline_p50": 0.464,
+  "leakage_flags": "none confirmed",
+  "validation": "5-fold GroupKFold by client_id with per-fold stability check"
+}
