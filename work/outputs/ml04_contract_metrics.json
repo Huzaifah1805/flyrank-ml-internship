@@ -1,0 +1,11 @@
+{
+  "rows_total": 30000,
+  "unique_content_ids": 30000,
+  "unique_clients": 32,
+  "grain_verified": true,
+  "pct_available": 100.0,
+  "declining_rows": 16262,
+  "roc_auc_honest": 0.7345,
+  "roc_auc_leaked": 0.9999,
+  "leakage_lift": 0.2655
+}
