@@ -1,0 +1,24 @@
+{
+  "total_pages_scored": 30000,
+  "action_threshold": 0.6,
+  "p1_urgent_count": 1270,
+  "p2_high_count": 13048,
+  "top50_precision": 1.0,
+  "action_mix_full_queue": {
+    "CONTENT_UPDATE": 10695,
+    "UX_IMPROVEMENT": 7753,
+    "META_TITLE_REFRESH": 5648,
+    "MONITOR": 4179,
+    "FULL_REWRITE": 1270,
+    "REVIEW_SCHEDULE": 455
+  },
+  "mean_score_declining": 0.8913,
+  "mean_score_not_declining": 0.1285,
+  "model_used": "Gradient Boosting (n_estimators=200, max_depth=4)",
+  "validation_p50": 0.772,
+  "figures": [
+    "ml10_action_mix.png",
+    "ml10_score_distribution.png",
+    "ml10_top_reason_codes.png"
+  ]
+}
