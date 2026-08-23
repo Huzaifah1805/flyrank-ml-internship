@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refresh / Content Opportunity Scoring — FlyRank ML Capstone</title>
+    <meta name="description" content="A machine learning research paper on content refresh opportunity scoring using FlyRank search intelligence data. Gradient Boosting achieves Precision@50 of 0.824, nearly doubling the baseline rule.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0f1a;
+            --bg-secondary: #111827;
+            --bg-card: rgba(17, 24, 39, 0.7);
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.15);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: rgba(148, 163, 184, 0.1);
+            --gradient-1: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        .hero {
+            background: linear-gradient(180deg, rgba(99,102,241,0.08) 0%, transparent 60%);
+            padding: 80px 24px 60px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 6px 18px;
+            background: var(--accent-glow);
+            border: 1px solid rgba(99,102,241,0.3);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #a5b4fc;
+            letter-spacing: 0.5px;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 {
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+
+        .hero .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            max-width: 680px;
+            margin: 0 auto 24px;
+        }
+
+        .hero .meta {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .hero .meta span { display: flex; align-items: center; gap: 6px; }
+
+        .container {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+        }
+
+        .section {
+            margin-bottom: 48px;
+        }
+
+        .section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent);
+            display: inline-block;
+        }
+
+        .section h3 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #c4b5fd;
+            margin: 24px 0 10px;
+        }
+
+        .section p, .section li {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+
+        .section ul, .section ol {
+            padding-left: 22px;
+        }
+
+        .section li {
+            margin-bottom: 8px;
+        }
+
+        .abstract-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            border-radius: 10px;
+            padding: 24px 28px;
+            margin: 16px 0 24px;
+            backdrop-filter: blur(10px);
+        }
+
+        .abstract-box p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-style: italic;
+            line-height: 1.8;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .metric-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(99,102,241,0.4);
+        }
+
+        .metric-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .metric-card .label {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .accent-val { color: #a5b4fc; }
+        .success-val { color: #34d399; }
+        .warning-val { color: #fbbf24; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: rgba(99,102,241,0.1);
+            color: #a5b4fc;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tr:hover td { background: rgba(99,102,241,0.03); }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(99,102,241,0.1);
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #c4b5fd;
+        }
+
+        pre {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .chart-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .chart-card img {
+            width: 100%;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .chart-card .caption {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .callout {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin: 16px 0;
+        }
+
+        .callout.warn {
+            background: rgba(245, 158, 11, 0.08);
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+
+        .callout p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .callout strong { color: var(--text-primary); }
+
+        .action-table td:first-child {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--accent-glow);
+            border: 1px solid rgba(99,102,241,0.3);
+            border-radius: 8px;
+            color: #a5b4fc;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 4px 8px 4px 0;
+            transition: all 0.2s;
+        }
+
+        .link-btn:hover {
+            background: rgba(99,102,241,0.25);
+            border-color: rgba(99,102,241,0.5);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px 24px;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .footer a { color: #a5b4fc; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+
+        @media (max-width: 600px) {
+            .hero { padding: 50px 16px 40px; }
+            .container { padding: 24px 16px 60px; }
+            .metric-grid { grid-template-columns: 1fr 1fr; }
+            .chart-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="hero">
+        <div class="hero-badge">FlyRank ML Internship — Capstone Research Paper</div>
+        <h1>Refresh / Content Opportunity Scoring</h1>
+        <p class="subtitle">A Gradient Boosting approach to detecting declining search content and generating ranked editorial action recommendations from the FlyRank Search Intelligence Warehouse.</p>
+        <div class="meta">
+            <span>👤 Huzaifah</span>
+            <span>🔬 Lane 2: Content Refresh Scoring</span>
+            <span>📅 July 2026</span>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- ABSTRACT -->
+        <section class="section">
+            <h2>Abstract</h2>
+            <div class="abstract-box">
+                <p>
+                    Can we automatically identify web pages that are silently losing search visibility before an editor notices? Using 30,000 pseudonymized content records from the FlyRank Search Intelligence Warehouse, I trained a Gradient Boosting classifier to score pages by their probability of experiencing a >20% month-over-month impression decline. The model achieved a Precision@50 of 0.824, nearly doubling the 0.464 baseline established by a composite rule-based scoring system. The output is a ranked content action playbook with reason codes and archetype-to-action mappings, designed for human editorial review. All results are observational and directional — they surface likely declining pages, but do not prove that a refresh will reverse the trend.
+                </p>
+            </div>
+        </section>
+
+        <!-- INTRODUCTION -->
+        <section class="section">
+            <h2>Introduction / Problem Statement</h2>
+            <p>Companies invest heavily in content that earns search visibility, but that visibility is fragile. Pages silently decay — their impressions drop, click-through rates erode, and rankings slip — often without anyone noticing until the damage compounds over months.</p>
+            <p>The decision this work supports is: <strong>"Which pages should a content editor review this week for potential refresh?"</strong></p>
+            <p>A human editor cannot manually monitor thousands of pages. A simple SQL rule (e.g., "flag pages older than 12 months") produces too many false positives. Machine learning helps because search decay is non-linear: a page with 10,000 impressions dropping 5% is a crisis, while a page with 100 impressions dropping 50% is statistical noise. A tree-based model learns these conditional boundaries across thousands of pages simultaneously.</p>
+        </section>
+
+        <!-- DATA -->
+        <section class="section">
+            <h2>Data</h2>
+            <p><strong>Source:</strong> FlyRank ML Internship dataset (Hugging Face, gated access), pseudonymized starter slice <code>refresh_feature_vector.csv</code>.</p>
+            <p><strong>Grain:</strong> One row = one pseudonymized content item (page) at a point-in-time snapshot.</p>
+            <p><strong>Records:</strong> 30,000 pages across multiple anonymized client websites.</p>
+            <p><strong>Feature window:</strong> Current-state signals only (CTR, average position, content age, session volume). All features represent the present or past — no future-window data is used.</p>
+
+            <h3>Excluded Columns (Leakage Prevention)</h3>
+            <p>The following columns were <strong>deliberately excluded</strong> from the feature set because they are computed from the same future time window as the label:</p>
+            <ul>
+                <li><code>impressions_last_30d</code>, <code>impressions_prev_30d</code> — direct components of the trend calculation</li>
+                <li><code>trend_pct</code> — the exact percentage change used to derive the label</li>
+                <li><code>trend_direction</code> — the label itself</li>
+            </ul>
+            <p><code>client_id</code> and <code>content_id</code> were used exclusively for grouping and validation splits, never as model features.</p>
+        </section>
+
+        <!-- METHODOLOGY -->
+        <section class="section">
+            <h2>Methodology</h2>
+
+            <h3>Label Definition</h3>
+            <p>A page is labeled as <strong>declining</strong> (<code>1</code>) if <code>trend_direction == 'down'</code>, which corresponds to a >20% month-over-month impression decline. All other pages are labeled <code>0</code>.</p>
+
+            <h3>Engineered Features</h3>
+            <p>Beyond the raw warehouse columns, I created interaction features to capture non-linear relationships:</p>
+            <ul>
+                <li><code>session_volume_efficiency</code> — sessions per impression, measuring conversion from visibility to engagement</li>
+                <li><code>stale_age_interaction</code> — content age × inverse freshness, amplifying risk for old content that hasn't been updated</li>
+                <li><code>ctr_to_pos</code> — CTR relative to position, detecting pages that underperform their ranking slot</li>
+            </ul>
+
+            <h3>Models Compared</h3>
+            <table>
+                <thead><tr><th>Model</th><th>Rationale</th></tr></thead>
+                <tbody>
+                    <tr><td>Baseline Composite Rule</td><td>Human-readable SQL-style rule combining visibility, freshness, and position opportunity</td></tr>
+                    <tr><td>Logistic Regression</td><td>Linear benchmark to verify non-linearity matters</td></tr>
+                    <tr><td>Random Forest</td><td>Ensemble of decorrelated trees; robust to outliers</td></tr>
+                    <tr><td>Gradient Boosting</td><td>Sequential error correction; excels at non-linear conditional boundaries</td></tr>
+                </tbody>
+            </table>
+
+            <h3>Validation Design</h3>
+            <p><strong>5-fold GroupKFold by <code>client_id</code></strong> — This ensures that all pages from a single client appear in either the train set or the test set, never both. This is critical because pages from the same website share structural and topical similarities. A random split would leak client-level patterns and inflate metrics.</p>
+        </section>
+
+        <!-- RESULTS -->
+        <section class="section">
+            <h2>Results</h2>
+
+            <div class="metric-grid">
+                <div class="metric-card">
+                    <div class="value warning-val">0.464</div>
+                    <div class="label">Baseline P@50</div>
+                </div>
+                <div class="metric-card">
+                    <div class="value accent-val">0.720</div>
+                    <div class="label">Random Forest P@50</div>
+                </div>
+                <div class="metric-card">
+                    <div class="value success-val">0.824</div>
+                    <div class="label">Gradient Boosting P@50</div>
+                </div>
+                <div class="metric-card">
+                    <div class="value success-val">+77.6%</div>
+                    <div class="label">Improvement vs Baseline</div>
+                </div>
+            </div>
+
+            <p>The Gradient Boosting model's top-50 recommendations correctly identified 41 out of 50 truly declining pages (Precision@50 = 0.824), compared to only 23 out of 50 for the baseline rule (0.464).</p>
+
+            <h3>Feature Importance</h3>
+            <p>The dominant predictive signals were <code>ctr</code>, <code>avg_position</code>, and the engineered <code>session_volume_efficiency</code>. The tree-based models successfully learned that <code>content_age_days</code> only becomes a risk factor when combined with a declining <code>ctr_to_pos</code> ratio — something the linear baseline rule failed to capture.</p>
+
+            <h3>Error Analysis</h3>
+            <p>False positives typically occurred on pages with very low overall search volume, where small absolute impression changes produce large percentage swings. This is expected statistical noise and does not compromise the model's utility for high-traffic pages.</p>
+        </section>
+
+        <!-- LIMITATIONS -->
+        <section class="section">
+            <h2>Limitations & Honest Framing</h2>
+
+            <div class="callout warn">
+                <p><strong>Observational, not causal.</strong> These predictions identify pages with a high probability of search demand decay. They do <em>not</em> prove that an editorial refresh will reverse the trend — establishing causality would require a controlled A/B experiment on refreshed vs. non-refreshed pages.</p>
+            </div>
+
+            <ul>
+                <li><strong>Directional guidance:</strong> The ranked queue is decision-support tooling for human editors, not an automated content modification system.</li>
+                <li><strong>Data scope:</strong> Results are based on the pseudonymized starter slice. Performance may vary on different client verticals or time periods.</li>
+                <li><strong>No real-world deployment feedback:</strong> The model has not been validated against actual editorial refresh outcomes.</li>
+                <li><strong>Low-volume noise:</strong> Pages with fewer than ~200 monthly impressions produce noisy trend signals; the model's precision is strongest on medium-to-high traffic pages.</li>
+            </ul>
+        </section>
+
+        <!-- RANKED RECOMMENDATIONS -->
+        <section class="section">
+            <h2>Ranked Recommendations (Action Playbook)</h2>
+            <p>The pipeline outputs a ranked content action queue (<code>ml10_ranked_queue.csv</code>) with 30,000 scored pages. Each page receives:</p>
+            <ul>
+                <li>A <strong>decline probability score</strong> (0–1) from the Gradient Boosting model</li>
+                <li>A <strong>recommended action</strong> mapped from content archetype</li>
+                <li><strong>Reason codes</strong> explaining the dominant signals (e.g., <code>STALE_CONTENT</code>, <code>PAGE1_LOW_CTR</code>, <code>IMPRESSION_DROP</code>)</li>
+                <li>A <strong>priority tier</strong> (P1 Urgent, P2 High, P3 Medium)</li>
+            </ul>
+
+            <h3>Action Mapping</h3>
+            <table class="action-table">
+                <thead><tr><th>Action</th><th>Trigger</th><th>Count (Full Queue)</th></tr></thead>
+                <tbody>
+                    <tr><td>FULL_REWRITE</td><td>Severely declining, high-value pages</td><td>1,270</td></tr>
+                    <tr><td>CONTENT_UPDATE</td><td>Moderate decline, refreshable content</td><td>10,695</td></tr>
+                    <tr><td>META_TITLE_REFRESH</td><td>Good content, underperforming metadata</td><td>5,648</td></tr>
+                    <tr><td>UX_IMPROVEMENT</td><td>Traffic exists but engagement is low</td><td>7,753</td></tr>
+                    <tr><td>MONITOR</td><td>New or stable pages — no action needed</td><td>4,179</td></tr>
+                    <tr><td>REVIEW_SCHEDULE</td><td>Borderline cases for periodic check</td><td>455</td></tr>
+                </tbody>
+            </table>
+
+            <div class="callout">
+                <p><strong>Human review required:</strong> No action should be automated. The playbook surfaces candidates; a content editor makes the final call. Pages flagged as <code>FULL_REWRITE</code> should receive priority review.</p>
+            </div>
+        </section>
+
+        <!-- REPRODUCIBILITY -->
+        <section class="section">
+            <h2>Reproducibility</h2>
+            <p>The full pipeline can be reproduced from a fresh clone:</p>
+            <pre><code># Clone the repository
+git clone https://github.com/Huzaifah1805/flyrank-ml-internship.git
+cd flyrank-ml-internship
+
+# Activate the virtual environment
+venv\Scripts\activate   # Windows
+# source venv/bin/activate  # macOS/Linux
+
+# Run the feature preparation
+python scripts/01_prepare_features.py
+
+# Run the baseline scoring
+python scripts/02_baseline_score.py
+
+# Run the full ML pipeline
+python work/scripts/train_capstone.py</code></pre>
+
+            <h3>Notebooks</h3>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;">
+                <a href="https://github.com/Huzaifah1805/flyrank-ml-internship/blob/main/work/notebooks/w03_data_contract.ipynb" class="link-btn">📓 W03: Data Contract</a>
+                <a href="https://github.com/Huzaifah1805/flyrank-ml-internship/blob/main/work/notebooks/w04_baseline_score.ipynb" class="link-btn">📓 W04: Baseline Score</a>
+                <a href="https://github.com/Huzaifah1805/flyrank-ml-internship/blob/main/work/notebooks/w05_model.ipynb" class="link-btn">📓 W05: Model Training</a>
+                <a href="https://github.com/Huzaifah1805/flyrank-ml-internship/blob/main/work/notebooks/w06_validation_audit.ipynb" class="link-btn">📓 W06: Validation Audit</a>
+                <a href="https://github.com/Huzaifah1805/flyrank-ml-internship/blob/main/work/notebooks/w07_action_playbook.ipynb" class="link-btn">📓 W07: Action Playbook</a>
+            </div>
+
+            <p><strong>Random seed:</strong> <code>RANDOM_STATE = 42</code> fixed across all scripts.</p>
+            <p><strong>Dependencies:</strong> <code>scikit-learn</code>, <code>pandas</code>, <code>numpy</code>, <code>matplotlib</code>, <code>duckdb</code> (see <code>requirements.txt</code>).</p>
+        </section>
+
+        <!-- ACKNOWLEDGMENTS -->
+        <section class="section">
+            <h2>Acknowledgments & Data Credit</h2>
+            <p>Built on the <a href="https://flyrank.ai/" style="color:#a5b4fc;">FlyRank ML Internship</a> dataset. Special thanks to the FlyRank team for providing pseudonymized, real-world search intelligence data for educational research.</p>
+            <p>All analysis was performed using open-source Python libraries. No proprietary tools or paid APIs were required.</p>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <p>Built on the <a href="https://flyrank.ai/">FlyRank ML Internship</a> dataset &nbsp;·&nbsp; <a href="https://github.com/Huzaifah1805/flyrank-ml-internship">View Repository</a></p>
+        <p style="margin-top:8px;">© 2026 Huzaifah — All rights reserved</p>
+    </footer>
+
+</body>
+</html>
